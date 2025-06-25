@@ -1,0 +1,111 @@
+inventario = {
+    "farmacos": {},
+    "insumos": {}
+}
+stock_minimo = {}
+
+def menu_inventario():
+    while True:
+        print("\n--- menu inventario ---")
+        print("1. ingresar producto")
+        print("2. ver stock")
+        print("3. definir minimo")
+        print("4. productos bajo minimo")
+        print("5. volver")
+        opcion = input("elige una opcion: ")
+
+        if opcion == "1":
+            tipo = input("tipo (farmacos, insumos): ")
+            if tipo not in inventario:
+                print("tipo no valido")
+                continue
+            codigo = input("codigo: ")
+            cantidad = int(input("cantidad: "))
+            costo = float(input("costo unitario: "))
+            if codigo not in inventario[tipo]:
+                inventario[tipo][codigo] = {"cantidad": 0, "costo": 0}
+            inventario[tipo][codigo]["cantidad"] += cantidad
+            inventario[tipo][codigo]["costo"] = costo
+            print("producto actualizado")
+
+        elif opcion == "2":
+            tipo = input("tipo (farmacos, insumos): ")
+            if tipo not in inventario:
+                print("tipo no valido")
+                continue
+            for codigo, datos in inventario[tipo].items():
+                print(f"{codigo}: cantidad = {datos['cantidad']}, costo = {datos['costo']}")
+
+        elif opcion == "3":
+            tipo = input("tipo: ")
+            codigo = input("codigo: ")
+            minimo = int(input("cantidad minima: "))
+            stock_minimo[f"{tipo}_{codigo}"] = minimo
+            print("minimo definido")
+
+        elif opcion == "4":
+            for tipo in inventario:
+                for codigo, datos in inventario[tipo].items():
+                    clave = f"{tipo}_{codigo}"
+                    if clave in stock_minimo and datos["cantidad"] < stock_minimo[clave]:
+                        print(f"{codigo} esta bajo el minimo")
+
+        elif opcion == "5":
+            break
+
+        else:
+            print("opcion no valida")
+
+# --------- fase 3: produccion ---------
+composiciones = {}
+productos_terminados = {}
+
+def menu_produccion():
+    while True:
+        print("\n--- menu produccion ---")
+        print("1. definir composicion")
+        print("2. fabricar producto")
+        print("3. ver stock productos")
+        print("4. volver")
+        opcion = input("elige una opcion: ")
+
+        if opcion == "1":
+            codigo_producto = input("codigo producto terminado: ")
+            composiciones[codigo_producto] = {}
+            while True:
+                cod_componente = input("componente (o 'fin'): ")
+                if cod_componente == "fin":
+                    break
+                cantidad = int(input("cantidad requerida: "))
+                composiciones[codigo_producto][cod_componente] = cantidad
+            print("composicion guardada")
+
+        elif opcion == "2":
+            codigo_producto = input("producto a fabricar: ")
+            cantidad_fabricar = int(input("cantidad a fabricar: "))
+            if codigo_producto not in composiciones:
+                print("composicion no registrada")
+                continue
+            faltante = False
+            for comp, cant in composiciones[codigo_producto].items():
+                tipo = "farmacos" if comp.startswith("f") else "insumos"
+                if comp not in inventario[tipo] or inventario[tipo][comp]["cantidad"] < cant * cantidad_fabricar:
+                    print(f"no hay suficiente de {comp}")
+                    faltante = True
+            if faltante:
+                continue
+            for comp, cant in composiciones[codigo_producto].items():
+                tipo = "farmacos" if comp.startswith("f") else "insumos"
+                inventario[tipo][comp]["cantidad"] -= cant * cantidad_fabricar
+            productos_terminados[codigo_producto] = productos_terminados.get(codigo_producto, 0) + cantidad_fabricar
+            print("producto fabricado")
+
+        elif opcion == "3":
+            for codigo, cantidad in productos_terminados.items():
+                print(f"{codigo}: {cantidad} unidades")
+
+        elif opcion == "4":
+            break
+
+        else:
+            print("opcion no valida")
